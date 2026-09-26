@@ -9,3 +9,5 @@ __pycache__/
 # Редакторы
 .vscode/
 .idea/
+
+.vs/
