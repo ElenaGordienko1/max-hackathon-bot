@@ -115,7 +115,7 @@ async def get_categories_menu(user_id: int) -> str:
     text += "/add — Добавить свое мероприятие\n"
     text += "/my — Посмотреть мои выбранные категории\n"
     text += "/refresh — Очистить прошедшие события и обновить\n"
-    text += "/start — Вернуться в главное меню"
+    #text += "/start — Вернуться в главное меню"
     return text
 
 CATEGORY_PAYLOADS = {
@@ -149,6 +149,11 @@ def build_commands_keyboard():
         CallbackButton(text="🔄 Обновить базу", payload="cmd_refresh"),
     )
     builder.row(CallbackButton(text="⚙️ Изменить интересы", payload="cmd_start"))
+    return builder.as_markup()
+
+def build_cancel_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.row(CallbackButton(text="❌ Отменить", payload="cmd_cancel"))
     return builder.as_markup()
 
 # --- ОБРАБОТЧИКИ СОБЫТИЙ ---
@@ -240,7 +245,8 @@ async def handle_add_event_start(event: MessageCreated):
     user_id = get_user_id(event)
     CREATING_EVENT_STATES[user_id] = {"step": "waiting_for_title"}
     await event.message.answer(
-        text="Создание нового мероприятия\n\nВведите название вашего мероприятия:"
+        text="Создание нового мероприятия\n\nВведите название вашего мероприятия:",
+        attachments=[build_cancel_keyboard()]
     )
 
 
@@ -261,7 +267,8 @@ async def handle_any_text(event: MessageCreated):
             for k, v in CATEGORIES.items():
                 menu_cat += f"/{k} — {v}\n"
             await event.message.answer(
-                text=f"Отлично! Название записано: {text}\n\n{menu_cat}"
+                text=f"Отлично! Название записано: {text}\n\n{menu_cat}",
+                attachments=[build_cancel_keyboard()]
             )
             return
 
@@ -275,11 +282,13 @@ async def handle_any_text(event: MessageCreated):
                         f"Категория выбрана: {state['category']}\n\n"
                         "Введите дату и время проведения в формате `ДД.ММ.ГГГГ ЧЧ:ММ`.\n"
                         "Пример: `28.09.2026 23:00`"
-                    )
+                    ),
+                    attachments=[build_cancel_keyboard()]
                 )
             else:
                 await event.message.answer(
-                    text="Пожалуйста, выберите категорию, нажав на одну из синих команд в меню."
+                    text="Пожалуйста, выберите категорию, нажав на одну из синих команд в меню.",
+                    attachments=[build_cancel_keyboard()]
                 )
             return
 
@@ -446,6 +455,15 @@ async def handle_callback(event):
                 new_text="Выбери категории:",
                 attachments=[await build_categories_keyboard(user_id)],
             )
+        elif payload == "cmd_cancel":
+            chat_id = get_chat_id(event)
+            CREATING_EVENT_STATES.pop(user_id, None)
+            await event.answer()
+            await bot.send_message(
+                chat_id=chat_id,
+                text="❌ Действие отменено. Вы вернулись в главное меню.\n\nВыберите нужное действие:",
+                attachments=[build_commands_keyboard()]
+        )
         return
 
 
