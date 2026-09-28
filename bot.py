@@ -3,11 +3,13 @@ import json
 import logging
 import os
 
+
 from datetime import datetime
 from maxapi import Bot, Dispatcher, F
 from maxapi.filters.command import CommandStart, Command
 from maxapi.types import BotStarted, MessageCreated
 from dotenv import load_dotenv
+from util import clean_expired_events
 
 load_dotenv()  
 logging.basicConfig(level=logging.INFO)
@@ -51,9 +53,9 @@ def load_all_data():
     else:
         DB_EVENTS = [ #ПОТОМ ПОМЕНЯТЬ НА ДРУГИЕ НА РЕАЛЬНЫЕ ДАННЫЕ
             {"category": "Спортивные мероприятия", "title": "🏆 Благотворительный футбольный матч", "time": "29.09.2026 09:00"},
-            {"category": "Спортивные мероприятия", "title": "🚴 Велозаезд по набережной", "time": "05.07.2027 20:00"},
+            {"category": "Спортивные мероприятия", "title": "🚴 Велозаезд по набережной", "time": "05.07.2007 20:00"},
             {"category": "Музыкальные мероприятия", "title": "🎸 Рок-фестиваль под открытым небом", "time": "28.09.2026 15:00"},
-            {"category": "Музыкальные мероприятия", "title": "🎹 Вечер классической музыки в филармонии", "time": "01.02.2027 09:00"},
+            {"category": "Музыкальные мероприятия", "title": "🎹 Вечер классической музыки в филармонии", "time": "01.02.2007 09:00"},
             {"category": "Театр", "title": "Спектакль 'Гамлет' (Премьера)", "time": "28.09.2026 15:00"},
             {"category": "Искусство и хобби", "title": "Мастер-класс по акварельной живописи", "time": "30.09.2026 06:00"},
             {"category": "Спортивные мероприятия", "title": "🏆 Футбольный матч хакатона", "time": "28.10.2026 09:00"},
@@ -100,6 +102,7 @@ def get_categories_menu(user_id):
     text += "/events — Посмотреть подходящие мероприятия\n"
     text += "/add — Добавить свое мероприятие\n"
     text += "/my — Посмотреть мои выбранные категории\n"
+    text += "/refresh - Очистить прошедшие события и обновить\n"
     text += "/start — Вернуться в главное меню"
     return text
 
@@ -109,6 +112,20 @@ def get_categories_menu(user_id):
 async def handle_bot_started(event: BotStarted):
     user_id = get_chat_id(event)
     await bot.send_message(chat_id=user_id, text=f"Привет! Давай настроим твои интересы.\n\n{get_categories_menu(user_id)}")
+
+@dp.message_created(Command(commands=["refresh"]))
+async def handle_refresh_events(event: MessageCreated):
+    global DB_EVENTS
+    deleted = clean_expired_events(EVENTS_FILE)
+    try:
+        with open(EVENTS_FILE, "r", encoding="utf-8") as f:
+            DB_EVENTS = json.load(f)
+    except Exception:
+        DB_EVENTS = []
+    if deleted > 0:
+        await event.message.answer(text=f"База данных успешно обновлена!\nУдалено прошедших событий: {deleted}.")
+    else:
+        await event.message.answer(text="База данных обновлена! Прошедших событий не найдено.")
 
 @dp.message_created(CommandStart())
 async def handle_start_command(event: MessageCreated):
@@ -236,6 +253,8 @@ async def handle_any_text(event: MessageCreated):
             USER_PREFERENCES[user_id].append(category_name)
             status_msg = f"Вы добавили категорию: {category_name}\n\n"
     await event.message.answer(text=f"Неизвестная команда.\n\n{get_categories_menu(user_id)}")
+
+
 async def main():
     load_all_data()
     print("Бот с динамическим добавлением ивентов запущен...")
