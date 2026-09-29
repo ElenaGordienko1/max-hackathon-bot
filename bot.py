@@ -326,8 +326,10 @@ async def handle_any_text(event: MessageCreated):
                     f"🔹 {new_event['title']}\n"
                     f"Категория: {new_event['category']}\n"
                     f"Время: {new_event['time']}\n\n"
-                    "Оно уже доступно всем пользователям через команду /events !"
-                )
+                    "Оно уже доступно всем пользователям.\n\n"
+                    "Выберите, что делать дальше:"
+                ),
+                attachments=[build_commands_keyboard()],
             )
             return
 
@@ -428,7 +430,11 @@ async def handle_callback(event):
 
         elif payload == "cmd_add":
             CREATING_EVENT_STATES[user_id] = {"step": "waiting_for_title"}
-            await event.answer(new_text="Создание нового мероприятия\n\nВведите название вашего мероприятия:")
+            await event.answer(
+            await event.answer(
+                new_text="Создание нового мероприятия\n\nВведите название вашего мероприятия:",
+                attachments=[build_cancel_keyboard()],
+            )
 
         elif payload == "cmd_my":
             user_choices = await get_interests(user_id)
