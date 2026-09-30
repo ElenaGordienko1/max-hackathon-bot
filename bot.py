@@ -164,7 +164,7 @@ async def handle_bot_started(event: BotStarted):
     chat_id = get_chat_id(event)
     await bot.send_message(
         chat_id=chat_id,
-        text="Привет! Давай настроим твои интересы.\nВыбери категории:",
+        text="Привет! Я чат-бот по подбору мероприятий по твоим интересам. \nДавай настроим их вместе!\nВыбери категории:",
         attachments=[await build_categories_keyboard(user_id)],
     )
 
@@ -430,7 +430,6 @@ async def handle_callback(event):
 
         elif payload == "cmd_add":
             CREATING_EVENT_STATES[user_id] = {"step": "waiting_for_title"}
-            await event.answer(
             await event.answer(
                 new_text="Создание нового мероприятия\n\nВведите название вашего мероприятия:",
                 attachments=[build_cancel_keyboard()],
