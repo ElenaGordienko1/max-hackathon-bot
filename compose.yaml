@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: max-hackathon-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./db_events.json:/app/db_events.json
