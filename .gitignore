@@ -11,3 +11,6 @@ __pycache__/
 .idea/
 
 .vs/
+
+bot_database.db
+*.db
