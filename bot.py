@@ -159,7 +159,7 @@ async def handle_bot_started(event: BotStarted):
     chat_id = get_chat_id(event)
     await bot.send_message(
         chat_id=chat_id,
-        text="Привет! Давай настроим твои интересы.\nВыбери категории:",
+        text="Привет! Я бот по подбору мероприятий по твоим интересам.\nДавай настроим их вместе?.\nВыбери категории:",
         attachments=[await build_categories_keyboard(user_id)],
     )
 
@@ -261,7 +261,8 @@ async def handle_any_text(event: MessageCreated):
             for k, v in CATEGORIES.items():
                 menu_cat += f"/{k} — {v}\n"
             await event.message.answer(
-                text=f"Отлично! Название записано: {text}\n\n{menu_cat}"
+                text=f"Отлично! Название записано: {text}\n\n{menu_cat}",
+                attachments=[build_commands_keyboard()],
             )
             return
 
@@ -275,11 +276,13 @@ async def handle_any_text(event: MessageCreated):
                         f"Категория выбрана: {state['category']}\n\n"
                         "Введите дату и время проведения в формате `ДД.ММ.ГГГГ ЧЧ:ММ`.\n"
                         "Пример: `28.09.2026 23:00`"
-                    )
+                    ),
+                attachments=[build_commands_keyboard()],
                 )
             else:
                 await event.message.answer(
-                    text="Пожалуйста, выберите категорию, нажав на одну из синих команд в меню."
+                    text="Пожалуйста, выберите категорию, нажав на одну из синих команд в меню.",
+                attachments=[build_commands_keyboard()],
                 )
             return
 
@@ -289,7 +292,8 @@ async def handle_any_text(event: MessageCreated):
                 current_date = datetime.now()
                 if input_date < current_date:
                     await event.message.answer(
-                        text="Ошибка: Вы ввели прошедшую дату! Мероприятие должно проходить в будущем. Попробуйте еще раз:"
+                        text="Ошибка: Вы ввели прошедшую дату! Мероприятие должно проходить в будущем. Попробуйте еще раз:",
+                attachments=[build_commands_keyboard()],
                     )
                     return
             except ValueError:
@@ -298,7 +302,8 @@ async def handle_any_text(event: MessageCreated):
                         "Неверный формат даты!\n"
                         "Пожалуйста, введите дату строго по шаблону `ДД.ММ.ГГГГ ЧЧ:ММ`.\n"
                         "Пример: `28.09.2026 23:00`"
-                    )
+                    ),
+                attachments=[build_commands_keyboard()],
                 )
                 return
 
@@ -318,7 +323,8 @@ async def handle_any_text(event: MessageCreated):
                     f"Категория: {new_event['category']}\n"
                     f"Время: {new_event['time']}\n\n"
                     "Оно уже доступно всем пользователям через команду /events !"
-                )
+                ),
+                attachments=[build_commands_keyboard()],
             )
             return
 
